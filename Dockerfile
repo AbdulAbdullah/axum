@@ -5,8 +5,8 @@ COPY . .
 RUN cargo build --release
 
 # Second stage: Create a minimal image to run the application
-FROM debian:buster-slim
+FROM debian:bookworm-slim   
 WORKDIR /app
 COPY --from=builder /app/target/release/axum .
 EXPOSE 8000
-CMD [ "./axum" ]
+CMD ["./axum"]

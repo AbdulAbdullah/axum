@@ -28,7 +28,7 @@ A simple REST API built with Rust, Axum, and PostgreSQL for managing users.
 
 1. **Clone the repository**
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/AbdulAbdullah/axum.git
 cd axum
 ```
 

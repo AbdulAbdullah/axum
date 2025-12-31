@@ -1,4 +1,4 @@
-use axum::{ extract::{ Path, State }, http::StatusCode, response::IntoResponse, routing::{ get, post }, Json, Router };
+use axum::{ extract::{ Path, State }, http::StatusCode, response::IntoResponse, routing::{ get, post, put, delete }, Json, Router };
 use serde::{ Deserialize, Serialize };
 use sqlx::{ postgres::PgPoolOptions, FromRow, PgPool };
 use std::env;
@@ -21,15 +21,15 @@ async fn main() {
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = PgPoolOptions::new().connect(&db_url).await.expect("Failed to connect database");
     sqlx::migrate!().run(&pool).await.expect("Failed to migrate database");
+    
     let app = Router::new()
         .route("/", get(root))
-        .route("/users", get(list_users))
-        .route("/users/:id", get(get_user))
-        .route("/users", post(create_user))
+        .route("/users", get(list_users).post(create_user))
+        .route("/users/{id}", get(get_user).put(update_user).delete(delete_user))
         .with_state(pool);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
-    println!("Server started on http://localhost:8000");
+    println!("Server started on http://0.0.0.0:8000");
     axum::serve(listener, app).await.unwrap();
 }
 
@@ -76,16 +76,21 @@ async fn create_user(
     Ok((StatusCode::CREATED, Json(user)))
 }
 
-
 // Update a user by ID
-async fn update_user(Path(id): Path<i32>, State(pool): State<PgPool>, Json(payload): Json<UserPayload>) -> Result<Json<User>, StatusCode> {
-    let user = sqlx::query_as::<_, User>("UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *")
-        .bind(&payload.name)
-        .bind(&payload.email)
-        .bind(id)
-        .fetch_one(&pool)
-        .await
-        .map_err(|_| StatusCode::NOT_FOUND)?;
+async fn update_user(
+    Path(id): Path<i32>, 
+    State(pool): State<PgPool>, 
+    Json(payload): Json<UserPayload>
+) -> Result<Json<User>, StatusCode> {
+    let user = sqlx::query_as::<_, User>(
+        "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *"
+    )
+    .bind(&payload.name)
+    .bind(&payload.email)
+    .bind(id)
+    .fetch_one(&pool)
+    .await
+    .map_err(|_| StatusCode::NOT_FOUND)?;
 
     Ok(Json(user))
 }
