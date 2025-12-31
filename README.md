@@ -4,11 +4,11 @@ A simple REST API built with Rust, Axum, and PostgreSQL for managing users.
 
 ## Features
 
-- ✅ CRUD operations for users
-- ✅ PostgreSQL database with SQLx
-- ✅ Automatic database migrations
-- ✅ Docker Compose setup
-- ✅ Async/await with Tokio
+- CRUD operations for users
+- PostgreSQL database with SQLx
+- Automatic database migrations
+- Docker Compose setup
+- Async/await with Tokio
 
 ## Tech Stack
 
